@@ -1,0 +1,92 @@
+<!Doctype html>
+<html ng-app="myApp">
+<head>
+  <title>1955 API Assignment (Full MEAN)></title>
+  <!-- require angular -->
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular-route.min.js"></script>
+  <script>
+    // Lets create our angular module
+    var myApp = angular.module('myApp', []);
+
+    // create the Factory
+    myApp.factory('PersonFactory', function($http) {
+      var factory = {};
+      var people = [];
+
+      factory.getPeople = function(callback) {
+        $http.get('/people').success(function(output){
+          people = output;
+          callback(people);
+        });
+      };
+
+      factory.addPeople = function(data, callback) {
+        $http.get('/new/'+data).success(function(output){
+          people = output;
+          callback(people);
+        });
+      };
+
+      factory.deletePeople = function(delete_id, callback) {
+        $http.get('/remove/'+delete_id).success(function(output) {
+          people = output;
+          callback(people);
+        })
+      };
+
+      return factory;
+
+    });
+
+    // create the Controller
+    myApp.controller('PeopleController', function($scope, PersonFactory) {
+
+      $scope.people = [];
+      $scope.new_person = {};
+
+      PersonFactory.getPeople(function(data){
+        $scope.people = data;
+      });
+
+      $scope.addPeople = function() {
+        PersonFactory.addPeople($scope.new_person.name, function(data){
+          $scope.people = data;
+          $scope.new_person = {};
+        });
+      };
+
+      $scope.deletePeople = function(person_id) {
+        PersonFactory.deletePeople(person_id, function(data) {
+          $scope.people = data;
+        })
+      }
+    });
+
+  </script>
+</head>
+<body ng-controller='PeopleController'>
+		<div id='container'>
+			<h1>1955 Dashboard</h1>
+			<hr>
+			<p>Add people!</p>
+			<form ng-submit='addPeople()'>
+				<input type='text' name='name' ng-model='new_person.name'>
+				<input type='submit' value='Submit'>
+			</form>
+      <hr>
+			<table>
+				<thead>
+					<th>Name</th>
+					<th>Delete</th>
+				</thead>
+				<tbody>
+					<tr ng-repeat='person in people track by $index'>
+						<td>{{ person.name }}</td>
+						<td><button ng-click='deletePeople(person._id)'>Delete</button></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
